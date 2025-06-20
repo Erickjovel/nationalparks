@@ -47,6 +47,8 @@ public class Coordinates {
         return "Coordinates{" +
                 "lat='" + latitude + '\'' +
                 ", lng='" + longitude + '\'' +
+                ", status='¡Desplegado con GitHub Actions!'" +
+
                 '}';
     }
 }
