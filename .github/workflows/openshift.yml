@@ -1,14 +1,11 @@
 name: OpenShift 
 
 env: 
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   APP_NAME: nationalparks
   IMAGE_TAGS: ${{ github.sha }}
-
   OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
   OPENSHIFT_NAMESPACE: "user0"
-
   APP_PORT: "8080"
 
 on:
@@ -39,6 +36,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
+      - name: Set lowercase repository owner
+        run: echo "REPO_OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Build image using S2I and Docker
         uses: redhat-actions/s2i-build@v2
         id: build_image
@@ -51,10 +51,10 @@ jobs:
 
       - name: Push image to GitHub Container Registry manually
         run: |
-          docker tag ${{ env.APP_NAME }}:latest ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:latest
-          docker tag ${{ env.APP_NAME }}:latest ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:latest
-          docker push ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+          docker tag ${{ env.APP_NAME }}:latest ghcr.io/${{ env.REPO_OWNER_LC }}/${{ env.APP_NAME }}:latest
+          docker tag ${{ env.APP_NAME }}:latest ghcr.io/${{ env.REPO_OWNER_LC }}/${{ env.APP_NAME }}:${{ github.sha }}
+          docker push ghcr.io/${{ env.REPO_OWNER_LC }}/${{ env.APP_NAME }}:latest
+          docker push ghcr.io/${{ env.REPO_OWNER_LC }}/${{ env.APP_NAME }}:${{ github.sha }}
 
       - name: Log in to OpenShift 
         uses: redhat-actions/oc-login@v1
@@ -71,7 +71,7 @@ jobs:
         run: |
           "${GITHUB_WORKSPACE}/.github/script.sh" \
           ${{ env.APP_NAME }} \
-          ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
+          ghcr.io/${{ env.REPO_OWNER_LC }}/${{ env.APP_NAME }}:${{ github.sha }} \
           ${{ env.OPENSHIFT_NAMESPACE }}
 
 
