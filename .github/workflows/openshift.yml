@@ -3,7 +3,7 @@ name: OpenShift
 env: 
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   APP_NAME: nationalparks
-  IMAGE_TAGS: latest ${{ github.sha }}
+  IMAGE_TAGS: ${{ github.sha }}
 
   OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
@@ -46,12 +46,14 @@ jobs:
           path_context: '.'
           builder_image: 'registry.access.redhat.com/ubi8/openjdk-11'
           image: ${{ env.APP_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
+          tags: latest
           use_docker: true
 
       - name: Push image to GitHub Container Registry manually
         run: |
-          docker tag ${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+          docker tag ${{ env.APP_NAME }}:latest ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:latest
+          docker tag ${{ env.APP_NAME }}:latest ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:latest
           docker push ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
 
       - name: Log in to OpenShift 
